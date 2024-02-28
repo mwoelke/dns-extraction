@@ -6,8 +6,17 @@ import sys
 HOST = "127.0.0.1"
 PORT = 53
 
-def SortMessages(messages):
-    pass
+
+def concatenate_messages(rec_incoming_messages):
+    # Initialize an empty bytes object to hold the concatenated message
+    concat_message = b""
+
+    # Iterate over the bytes object in steps of 64 bytes (63 bytes of message + 1 byte dividing character)
+    for i in range(0, len(rec_incoming_messages), 64):
+        # Append the first 63 bytes of each chunk to the concat_message
+        concat_message += rec_incoming_messages[i:i + 63]
+
+    print("concat message: ", concat_message)
 
 
 with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
@@ -25,10 +34,7 @@ with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
         print("length: ",rec_length)
         print("message: ", rec_incoming_messages)
         if len(rec_incoming_messages) > 63:
-            message1 = rec_incoming_messages[:63]
-            message2 = rec_incoming_messages[64:]
-            concat_message = message1+message2
-            print("concat message: ", concat_message)
+            concatenate_messages(rec_incoming_messages)
 
 
 
