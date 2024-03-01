@@ -29,12 +29,18 @@ with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
         rec_length = data[12:13]
         # greps the message
         rec_incoming_messages = data[13:-5]
-        print(data)
-        print(type(data))
-        print("length: ",rec_length)
-        print("message: ", rec_incoming_messages)
+        #print(data)
+        #print(type(data))
+        #print("length: ",rec_length)
+        #print("message: ", rec_incoming_messages)
         if len(rec_incoming_messages) > 63:
-            concatenate_messages(rec_incoming_messages)
+            #ends the connection & adds the message to the concat message
+            if rec_incoming_messages[-4:] == "ffff":
+                print("Connection Closed")
+                concatenate_messages(rec_incoming_messages[:-4])
+            #adds the message to the concat message
+            else:
+                concatenate_messages(rec_incoming_messages)
 
 
 
