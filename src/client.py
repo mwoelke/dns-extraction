@@ -53,7 +53,8 @@ def send_payloads(payloads: list) -> None:
     print('FAILED')
 
 # split payload into several queries, each query having upto 250 bytes
-query_raw = sys.argv[1]
+query_raw = sys.argv[1].encode('ascii')
+query_raw += b"\xff\xff"
 all_payloads = []
 
 count_queries = len(query_raw) // 250
@@ -72,7 +73,7 @@ for query in queries:
 
     query_parts = b""
     for i in range(count_query_parts):
-        encoded = query[(i*63):((i+1)*63)].encode('ascii')
+        encoded = query[(i*63):((i+1)*63)]
         # append len(query) + query + 0 byte to payload
         query_parts += ((len(encoded)).to_bytes(1, byteorder='big') + encoded)
     # append 0 byte to end string
