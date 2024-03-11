@@ -39,6 +39,7 @@ def write_msg_to_file(msg: bytes) -> None:
         f.write(msg)
 
     print(f'RECEIVED NEW MESSAGE: {file}')
+    print(msg)
 
 msg = b""
 
@@ -60,7 +61,7 @@ with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
             if rec_incoming_messages[-2:] == b"\xff\xff":
                 msg += extract_messages(rec_incoming_messages[:-2])
 
-                # Write message to disk
+                # Write message to disk and print to screen
                 write_msg_to_file(msg)
                 
                 # reset incoming message
