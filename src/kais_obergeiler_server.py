@@ -3,10 +3,10 @@
 import socket
 from base64 import b64decode
 import datetime
+import sys
 
 HOST = "127.0.0.1"
 PORT = 53
-
 
 def extract_messages(rec_incoming_messages) -> bytes:
     """
@@ -42,10 +42,15 @@ def write_msg_to_file(msg: bytes) -> None:
     print(msg)
 
 msg = b""
+if len(sys.argv) >= 2:
+    HOST = sys.argv[1]
+
+    if len(sys.argv) == 3:
+        PORT = int(sys.argv[2],10)
 
 with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
     s.bind((HOST,PORT))
-    print("Server is up and running")
+    print(f"Server is up and running on {HOST}:{PORT}")
     while True:
         data = s.recv(1024)
 

@@ -4,9 +4,10 @@ import socket
 import sys
 from base64 import b64encode
 
-assert len(sys.argv) == 2, "Usage: ./client.py <FILENAME>"
+assert len(sys.argv) >= 2, "Usage: ./client.py <FILENAME> [<HOST> [<PORT>]]"
 
 HOST = "127.0.0.1"
+PORT = 53
 
 def get_dns_header(transaction_id: int) -> bytes:
     """
@@ -46,11 +47,11 @@ def send_payloads(payloads: list) -> None:
             body += payload
 
             # send dns request
-            s.sendto(body, (HOST,53))
+            s.sendto(body, (HOST,PORT))
 
             # increase header_count
             header_count += 1
-        print('SUCCESS')
+        print('DONE')
         return
     print('FAILED')
 
@@ -60,6 +61,13 @@ with open(sys.argv[1],"r") as f:
     query_raw = f.read()
 
 assert query_raw != None, "Could not read file"
+
+if len(sys.argv) >= 3:
+    HOST = sys.argv[2]
+    if len(sys.argv) == 4:
+        PORT = int(sys.argv[3],10)
+
+print(f"Sending query on {HOST}:{PORT}")
 
 # split payload into several queries, each query having upto 250 bytes
 query_raw = query_raw.encode('utf-8')
