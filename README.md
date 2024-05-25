@@ -26,15 +26,15 @@ e.g.:
 
 ## Client
 
-`./server.py FILE [HOST [PORT]]`
+`./client.py FILE [HOST [PORT]]`
 
 default: 172.0.0.1:53
 
 e.g.: 
 
-`./server.py robotergesetz.txt`: Send content of robotergesetz.txt to 172.0.0.1:53
+`./client.py robotergesetz.txt`: Send content of robotergesetz.txt to 172.0.0.1:53
 
-`./server.py robotergesetz.txt 0.0.0.0`: Send content of robotergesetz.txt to 0.0.0.0:53
+`./client.py robotergesetz.txt 0.0.0.0`: Send content of robotergesetz.txt to 0.0.0.0:53
 
-`./server.py robotergesetz.txt 192.168.0.100 4000`: Send content of robotergesetz.txt to 192.168.0.100:4000
+`./client.py robotergesetz.txt 192.168.0.100 4000`: Send content of robotergesetz.txt to 192.168.0.100:4000
 
